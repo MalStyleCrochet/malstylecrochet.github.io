@@ -6,7 +6,21 @@
     <title>404 Not Found</title>
     
     <script type="text/javascript">
-        // GitHub Pages Trailing Slash & Directory Redirect Script
+        // GitHub Pages Trailing Slash & Case-Insensitive Redirect Script
+        // 
+        // This script handles two common GitHub Pages issues:
+        // 1. URLs without trailing slashes returning 404
+        // 2. Case-insensitive URL access (e.g., /poopgen → /PoopGen/)
+        //
+        // The approach: Use fetch() to probe the URL with a trailing slash.
+        // If it resolves (even via redirect), navigate there. This catches
+        // both the trailing slash issue AND case-insensitive redirects.
+        //
+        // Examples of what this fixes:
+        //   malstyle.com/PoopGen   → malstyle.com/PoopGen/
+        //   malstyle.com/poopgen   → malstyle.com/PoopGen/  (case fix!)
+        //   malstyle.com/poopgen/  → (handled by GitHub's server-side redirect)
+        
         (function() {
             'use strict';
             
@@ -22,18 +36,42 @@
             var endsWithSlash = path.endsWith('/');
             var isRoot = path === '/';
             
-            // If it looks like a directory without a trailing slash, try adding one
+            // If it looks like a directory without a trailing slash, probe and redirect
             if (!endsWithSlash && !hasExtension && !isRoot) {
-                // Build the corrected URL with trailing slash
-                var correctedUrl = loc.protocol + '//' + loc.host + path + '/' +
-                                   loc.search + loc.hash;
                 
-                // Use replace() so the broken URL doesn't stay in browser history
-                loc.replace(correctedUrl);
+                // URL to try (with trailing slash added)
+                var probeUrl = loc.protocol + '//' + loc.host + path + '/';
                 
+                // Use fetch to check if the URL (or a redirect from it) exists
+                // The {redirect: 'follow'} ensures we follow GitHub's case-insensitive redirects
+                fetch(probeUrl, { method: 'HEAD', redirect: 'follow' })
+                    .then(function(response) {
+                        if (response.ok) {
+                            // Success! Use the final URL after any redirects
+                            // response.url contains the final destination (e.g., /PoopGen/)
+                            var finalUrl = response.url + loc.search + loc.hash;
+                            loc.replace(finalUrl);
+                        } else {
+                            // Probe failed - it's a genuine 404, show the error page
+                            showErrorPage();
+                        }
+                    })
+                    .catch(function() {
+                        // Network error or other issue - show error page
+                        showErrorPage();
+                    });
+                
+                // Hide body while we check (prevents flash of 404 content)
+                document.documentElement.style.visibility = 'hidden';
                 return;
             }
             
+            // If we get here, it's a genuine 404 - show the error page
+            showErrorPage();
+            
+            function showErrorPage() {
+                document.documentElement.style.visibility = 'visible';
+            }
         })();
     </script>
     
