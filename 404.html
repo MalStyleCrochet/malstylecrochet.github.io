@@ -1,7 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 Not Found</title>
+    
+    <script type="text/javascript">
+        // GitHub Pages Trailing Slash & Directory Redirect Script
+        (function() {
+            'use strict';
+            
+            var loc = window.location;
+            var path = loc.pathname;
+            
+            // Check if this looks like a directory request missing a trailing slash:
+            // - Does NOT end with a slash
+            // - Does NOT have a file extension (no dot in the last segment)
+            // - Is not the root path
+            var lastSegment = path.split('/').pop();
+            var hasExtension = lastSegment.indexOf('.') !== -1;
+            var endsWithSlash = path.endsWith('/');
+            var isRoot = path === '/';
+            
+            // If it looks like a directory without a trailing slash, try adding one
+            if (!endsWithSlash && !hasExtension && !isRoot) {
+                // Build the corrected URL with trailing slash
+                var correctedUrl = loc.protocol + '//' + loc.host + path + '/' +
+                                   loc.search + loc.hash;
+                
+                // Use replace() so the broken URL doesn't stay in browser history
+                loc.replace(correctedUrl);
+                
+                return;
+            }
+            
+        })();
+    </script>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -44,5 +79,14 @@
            Please <a href="/">go home</a> to do more!
         </p>
     </div>
+    
+    <!--
+        Note: This file should be at least 512 bytes for Internet Explorer
+        compatibility. This comment ensures we meet that threshold.
+        
+        GitHub Pages redirect solution based on community patterns from:
+        https://github.com/rafgraph/spa-github-pages
+        https://github.com/slorber/trailing-slash-guide
+    -->
 </body>
 </html>
