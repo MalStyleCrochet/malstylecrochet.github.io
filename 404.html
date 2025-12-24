@@ -4,57 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 Not Found</title>
-    
+
     <script type="text/javascript">
         // GitHub Pages Trailing Slash & Directory Redirect Script
+        // Handles two common 404 causes on GitHub Pages:
+        // 1. Incorrect repository name casing (e.g., /poopgen/ -> /PoopGen/)
+        // 2. Missing trailing slashes on directory URLs
         (function () {
             'use strict';
-            const repoNames = {
-                "POOPGEN": "PoopGen"
+
+            // Map of uppercase repo names to their correct casing
+            var repoNames = {
+                'POOPGEN': 'PoopGen'
             };
+
             var loc = window.location;
             var path = loc.pathname;
+            var segments = path.split('/');
 
-            // --- BEGIN: repo-name case fix ---
-            // Expect: /<repo>/...  (GitHub Pages project sites)
-            var segments = path.split('/'); // ["", "<repo>", ...]
-            if (segments.length > 2 && segments[1]) {
+            // Fix repository name casing if needed
+            // GitHub Pages project URLs: /<repo>/...
+            if (segments.length > 1 && segments[1]) {
                 var requested = segments[1];
                 var upper = requested.toUpperCase();
-                if (Object.prototype.hasOwnProperty.call(repoNames, upper) && repoNames[upper] !== requested) {
+
+                if (repoNames.hasOwnProperty(upper) && repoNames[upper] !== requested) {
                     segments[1] = repoNames[upper];
-                    var fixedPath = segments.join('/');
-                    loc.replace(loc.protocol + '//' + loc.host + fixedPath + loc.search + loc.hash);
+                    loc.replace(loc.protocol + '//' + loc.host + segments.join('/') + loc.search + loc.hash);
                     return;
                 }
             }
-            // --- END: repo-name case fix ---
 
-            // Check if this looks like a directory request missing a trailing slash:
-            // - Does NOT end with a slash
-            // - Does NOT have a file extension (no dot in the last segment)
-            // - Is not the root path
-            var lastSegment = path.split('/').pop();
+            // Add trailing slash to directory-like paths
+            // Criteria: no trailing slash, no file extension, not root
+            var lastSegment = segments[segments.length - 1];
             var hasExtension = lastSegment.indexOf('.') !== -1;
             var endsWithSlash = path.endsWith('/');
             var isRoot = path === '/';
 
-            // If it looks like a directory without a trailing slash, try adding one
             if (!endsWithSlash && !hasExtension && !isRoot) {
-                // Build the corrected URL with trailing slash
-                var correctedUrl = loc.protocol + '//' + loc.host + path + '/' +
-                    loc.search + loc.hash;
-
-                // Use replace() so the broken URL doesn't stay in browser history
-                loc.replace(correctedUrl);
-
-                return;
+                loc.replace(loc.protocol + '//' + loc.host + path + '/' + loc.search + loc.hash);
             }
-        }());
-            
         })();
     </script>
-    
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -62,49 +55,40 @@
             text-align: center;
             padding: 50px;
         }
+
         .container {
             background-color: #fff;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             display: inline-block;
         }
-        h1 {
-            color: #333;
-            font-size: 48px;
-        }
-        p {
-            color: #666;
-            font-size: 20px;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
+
+        h1 { color: #333; font-size: 48px; }
+        p { color: #666; font-size: 20px; }
+        a { color: #007bff; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <main class="container" role="main">
         <h1>Oops!</h1>
-        <p>In search of a page, you did explore,<br>
-           But alas, you've hit error 404.<br>
-           It's not here, I fear,<br>
-           Seems it's disappeared,<br>
-           Please <a href="/">go home</a> to do more!
+        <p>
+            In search of a page, you did explore,<br>
+            But alas, you've hit error 404.<br>
+            It's not here, I fear,<br>
+            Seems it's disappeared,<br>
+            Please <a href="/">go home</a> to find more!
         </p>
-    </div>
-    
+    </main>
+
     <!--
-        Note: This file should be at least 512 bytes for Internet Explorer
+        Note: This file must exceed 512 bytes for Internet Explorer
         compatibility. This comment ensures we meet that threshold.
-        
-        GitHub Pages redirect solution based on community patterns from:
-        https://github.com/rafgraph/spa-github-pages
-        https://github.com/slorber/trailing-slash-guide
+
+        GitHub Pages redirect patterns based on:
+        - https://github.com/rafgraph/spa-github-pages
+        - https://github.com/slorber/trailing-slash-guide
     -->
 </body>
 </html>
